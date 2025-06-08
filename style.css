@@ -327,6 +327,54 @@
     font-size: var(--size);
 }
 
+/*review*/
+.review-card {
+    max-width: 400px;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    font-family: sans-serif;
+  }
+  
+  .review-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .review-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .review-name {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .review-stars {
+    color: gold;
+    font-size: 1rem;
+  }
+  
+  .review-text {
+    font-size: 1rem;
+    margin: 0.5rem 0 1rem;
+    color: #333;
+  }
+  
+  .review-date {
+    font-size: 0.875rem;
+    color: #999;
+    text-align: right;
+  }
+  
+
 @media (min-width: 768px) {
     .grid-cols-count {
       --cols: 2;

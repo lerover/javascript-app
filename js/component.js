@@ -55,6 +55,29 @@ class Card extends HTMLElement {
     }
 }
 
+class ReviewCard extends HTMLElement{
+    connectedCallback(){
+        try{
+            this.innerHTML = `
+            <div class="review-card">
+                <div class="review-header">
+                  <img src="${this.getAttribute("image")}" alt="User Avatar" class="review-avatar">
+                  <div>
+                    <h3 class="review-name">${this.getAttribute("name")}</h3>
+                    <div class="review-stars">★★★★★</div>
+                  </div>
+                </div>
+                <p class="review-text">
+                  "${this.getAttribute("text")}"
+                </p>
+                <div class="review-date">${this.getAttribute("date")}</div>
+              </div>`;
+        }catch(e){
+            console.log(e);
+        }
+    }
+}
+
 class Hero extends HTMLElement{
     connectedCallback(){
         try{
@@ -81,4 +104,5 @@ class Hero extends HTMLElement{
 
 customElements.define('nav-component', Nav);
 customElements.define('card-component', Card);
+customElements.define('review-card-component', ReviewCard);
 customElements.define('hero-component', Hero);

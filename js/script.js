@@ -7,18 +7,27 @@
     third call your function (two params - object, container)
 */
 
-const cardFunction = (values,entryContainer,customAttr = {}) => {
+const cardFunction = (values,entryContainer,customAttr = {},cardName) => {
     values.forEach((value) => {
-        const card = document.createElement('card-component');
-
-        const imageUrl = value?.image?.includes('https') ? value.image : `assets/images/${value.image}`;
-        customAttr.isImage ? '' : card.setAttribute('image', imageUrl);
-        card.setAttribute('title', value.title);
-        card.setAttribute('text', value.text);
-        card.setAttribute('buttonText', value.buttonText);
-        Object.entries(customAttr).forEach(([key, val]) => {
-            card.setAttribute(key, val);
-        })
+        let card = document.createElement(`${cardName ?? 'card'}-component`);
+        switch(cardName){
+            case 'reviewCard':
+                card.setAttribute('name', value.name);
+                card.setAttribute('text', value.text);
+                card.setAttribute('date', value.date);
+                card.setAttribute('image', value.image);
+                break;
+            default:
+                const imageUrl = value?.image?.includes('https') ? value.image : `assets/images/${value.image}`;
+                customAttr.isImage ? '' : card.setAttribute('image', imageUrl);
+                card.setAttribute('title', value.title);
+                card.setAttribute('text', value.text);
+                card.setAttribute('buttonText', value.buttonText);
+                Object.entries(customAttr).forEach(([key, val]) => {
+                    card.setAttribute(key, val);
+                })
+                break;
+        }
         entryContainer.appendChild(card);
     })
 }
@@ -263,9 +272,9 @@ const shopCatalogues = [
 const waitDom = (arrays) => {
     arrays.forEach((array) => {
         if(array[2]){
-            if(array[1]) cardFunction(array[0], array[1], array[2]);
+            if(array[1]) cardFunction(array[0], array[1], array[2], array[3]);
         }else{
-            if(array[1]) cardFunction(array[0], array[1]);
+            if(array[1]) cardFunction(array[0], array[1], array[2]);
         }
     })
 }
@@ -280,6 +289,7 @@ const contactContainer = document.getElementById('contact');
 // array first room - input your data array
 // array second room - input your container
 // array third room - input your custom attributes kinda condition true or false - isBtn, isImage
+// array fourth room - input your card name, card name must to be the component name without component
 waitDom([
     [catalogues, container],
     [shopCatalogues, shopContainer],
