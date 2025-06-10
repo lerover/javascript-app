@@ -125,16 +125,18 @@ a{
     text-align: center;
 }
 .card-button {
+    --card-btn-color: #333;
     width: 100%;
     border: none;
-    background-color: #333;
+    background-color: var(--card-btn-color);
     transition: background-color 0.3s ease;
     cursor: pointer;
     color: white;
     padding: 10px;
 }
 .card-button:hover {
-    background-color: #555;
+    --card-btn-color-hover: #555;
+    background-color: var(--card-btn-color-hover);
 }
 
 /* display */
@@ -346,6 +348,12 @@ a{
 .text-size{
     --size: 16px;
     font-size: var(--size);
+}
+
+/* background-color */
+.bg-color{
+    --bg-color: #000;
+    background-color: var(--bg-color);
 }
 
 /*review*/

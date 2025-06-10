@@ -1,3 +1,6 @@
+import { store } from "./store.js";
+
+
 //for cards 
 //documentation
 
@@ -7,11 +10,7 @@
     third call your function (two params - object, container)
 */
 
-const generateId = () => {
-    return Date.now() + Math.floor(Math.random() * 1000)
-}
-
-const cardFunction = (values,entryContainer,customAttr = {},cardName) => {
+const cardFunction = (values,entryContainer,customAttr = {},cardName, noGenerateId = true) => {
     values.forEach((value) => {
         let card = document.createElement(`${cardName ?? 'card'}-component`);
         switch(cardName){
@@ -22,12 +21,11 @@ const cardFunction = (values,entryContainer,customAttr = {},cardName) => {
                 card.setAttribute('image', value.image);
                 break;
             default:
-                const imageUrl = value?.image?.includes('https') ? value.image : `assets/images/${value.image}`;
-                customAttr.isImage ? '' : card.setAttribute('image', imageUrl);
+                customAttr.isImage ? '' : card.setAttribute('image', value.image);
                 card.setAttribute('title', value.title);
                 card.setAttribute('text', value.text);
                 card.setAttribute('buttonText', value.buttonText);
-                card.setAttribute('id', `${value.title}-${generateId()}`);
+                noGenerateId ? card.setAttribute('id', `${value.title}-${value.image}`) : card.setAttribute('id', value.id);
                 Object.entries(customAttr).forEach(([key, val]) => {
                     card.setAttribute(key, val);
                 })
@@ -305,17 +303,23 @@ const shopCatalogues = [
  ]
       
 
+const cartItems = JSON.parse(localStorage.getItem('cart'))?.map(item => {
+  return {
+    id: item.id,
+    image: item.image,
+    title: item.name,
+    text: item.text,
+    buttonText: 'Remove From Cart'
+  }
+}) || [];
 
 
 const waitDom = (arrays) => {
     arrays.forEach((array) => {
-        if(typeof array[2] !== 'string'){
-            if(array[1]) cardFunction(array[0], array[1], array[2], array[3]);
-        }else{
-            if(array[1]) cardFunction(array[0], array[1],null, array[2]);
-        }
+        if(array[1]) cardFunction(array[0], array[1], array[2], array[3])
     })
 }
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -324,6 +328,7 @@ const container = document.getElementById('cards');
 const shopContainer = document.getElementById('shopCards');
 const contactContainer = document.getElementById('contact');
 const reviewContainer = document.getElementById('review-container');
+const cart = document.getElementById('cart');
 
 // array first room - input your data array
 // array second room - input your container
@@ -332,8 +337,9 @@ const reviewContainer = document.getElementById('review-container');
 waitDom([
     [catalogues, container],
     [shopCatalogues, shopContainer],
-    [contactData, contactContainer, {isBtn: false, isImage: true}],
-    [reviewData, reviewContainer, 'review-card']
+    [contactData, contactContainer, {isBtn: false, isImage: true},null],
+    [reviewData, reviewContainer, null, 'review-card'],
+    [cartItems, cart, {},null , false]
 ])
 })
 
@@ -342,14 +348,15 @@ waitDom([
 //@click 
 // script.js
 // bind the @click (data-click) in script.js, so whereever I use that from html file, it can use the functions of window.AppFunctions
-function bindClickDirectives(context = window) {
+export function bindClickDirectives(context = window) {
   document.querySelectorAll('[data-click]').forEach(el => {
     const fnName = el.dataset.click;
     const fn = window.AppFunctions?.[fnName];
 
+    console.log(el)
+
     if (typeof fn === 'function') {
-      const argsAttr = el.dataset.clickArgs ? el.dataset.clickArgs : true;
-     
+      const argsAttr = el.dataset.clickArgs ;
       let args = [];
 
       try{
@@ -367,7 +374,7 @@ function bindClickDirectives(context = window) {
 
         if(bindKey && context && typeof context == 'object'){
             context[bindKey] = result;
-            console.log(context[bindKey])
+            console.log(context)
         }
         
       });
@@ -378,4 +385,10 @@ function bindClickDirectives(context = window) {
 }
 
 window.addEventListener('DOMContentLoaded', bindClickDirectives);
+
+
+//for cart page
+console.log(store.getState().cart)
+
+
 

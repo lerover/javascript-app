@@ -17,9 +17,11 @@ const createStore = (initialState = {}) => {
     }
 }
 
-const store = createStore({
+export const store = createStore({
     count: 0,
-    username: ''
+    username: '',
+    cart: []
 });
 
-window.store = store;      
+window.store = store;    
+

@@ -1,3 +1,8 @@
+import {store} from "./store.js";
+import { bindClickDirectives } from "./script.js";
+
+console.log(store.getState().cart)
+
 class Nav extends HTMLElement {
     constructor(){
         super();
@@ -5,13 +10,25 @@ class Nav extends HTMLElement {
         this.handleResize = this.handleResize.bind(this);
         this.links = [];
         this.text = '';
-        this.openNavResult = null;
+
+        // making like ref() of vue 
+        Object.defineProperty(this, 'openNavResult', {
+            get: () => this._openNavResult,
+            set: (value) => {
+                this._openNavResult = value;
+                this.render();
+            }
+        })
+        this.openNavResult = false;
     }
     connectedCallback() {
         
         this.mediaQuery.addEventListener("change", this.handleResize);
+        
         this.links = this.getAttribute("links");
         this.text = this.getAttribute("text");
+        
+        console.log(this.mobileNavBtn)
 
 
         try{
@@ -33,7 +50,11 @@ class Nav extends HTMLElement {
 
     render(){
         const isMobile = this.mediaQuery.matches;
-        const mobileIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-count" style="--w: 24px;">
+        const mobileIcon = this.openNavResult ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-count" style="--w: 24px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>`  
+                            : 
+                            `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-count" style="--w: 24px;">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
                             </svg>`
 
@@ -43,7 +64,7 @@ class Nav extends HTMLElement {
         });
 
         const mobileLists = this.links.map((link) => {
-            return `<div class="padding-x margin-y ${this.openNavResult ? 'block' : 'hidden'}" style="--my: 5px; cursor: pointer;">
+            return `<div class=" padding-x margin-y ${this.openNavResult ? 'block' : 'hidden'}" style="--my: 5px; cursor: pointer;">
                 <ul class="" style="list-style-type: none;">
                     <li class="link-decoration"><a href="${link.href}">${link.text}</a></li>
                 </ul>
@@ -55,23 +76,34 @@ class Nav extends HTMLElement {
             <nav class="nav flex justify-between items-center">
                 <h1 class="text-center margin-x text-color" style="--color: #fff;">${this.title}</h1>
                                 
-                <button data-click="isBool" data-click-args="[${this.openNavResult}]" data-bind-result="openNavResult" class="btn btn-color ${isMobile ? 'block' : 'hidden'}" style="padding: 2px 2px; --btn-color:transparent; --btn-text-color:white;" >${mobileIcon}</button>
+                <button id="mobile-nav-btn" class="btn btn-color ${isMobile ? 'block' : 'hidden'}" style="padding: 2px 2px; --btn-color:transparent; --btn-text-color:white;" >${mobileIcon}</button>
                                    
                 <ul class="nav-list ${isMobile ? 'hidden' : 'block'}">${listItems.join('')}</ul>
             </nav>
             ${isMobile ? mobileLists.join('') : ''}
             `;
         
+        this.mobileNavBtn = document.getElementById('mobile-nav-btn');
+        this.mobileNavBtn.addEventListener('click', () => {
+            this.openNavResult = !this.openNavResult;
+            console.log(this.openNavResult)
+        })
         bindClickDirectives(this);
         
     }
 }
 
 class Card extends HTMLElement {
+    constructor(){
+        super();
+        this.cart =  store.getState().cart;  
+       
+    }
     connectedCallback() {
         try{
             const text = this.getAttribute("text");
             const id = this.getAttribute("id");
+            const imageUrl = this.getAttribute("image");
             
             const condition = Array.isArray(text.split(', '));
             let textContent;
@@ -85,15 +117,45 @@ class Card extends HTMLElement {
             const isBtn = this.hasAttribute("isBtn") ? this.getAttribute("isBtn") !== "false" : true;
             this.innerHTML = `
         <div class="card">
-            ${this.hasAttribute("image") ? `<img src="${this.getAttribute("image")}" alt="" class="card-img">` : ''}
+            ${this.hasAttribute("image") ? `<img src="${imageUrl.includes('https') ? imageUrl : `assets/images/${imageUrl}`}" alt="" class="card-img">` : ''}
             <h2 class="card-title">${this.getAttribute("title")}</h2>
             ${textContent}
-            ${isBtn ? `<button id="btn-${id}" class="card-button">${this.getAttribute("buttonText")}</button>` : ''}
+            ${isBtn ? `<button id="btn-${id}" class="card-button btn-color" style="${this.getAttribute('buttonText').includes('Remove') ? '--card-btn-color:red; --btn-text-color:white; --card-btn-color-hover:rgba(255, 0, 0, 0.7);':''}">${this.getAttribute("buttonText")}</button>` : ''}
          </div>`;
+
+         const btn = document.getElementById(`btn-${id}`);
+         btn.addEventListener('click', () => {
+            this.storeInArray({id, name: this.getAttribute("title"), text, image: imageUrl})
+         })
         }catch(e){
             console.log(e);
         }
     }
+
+    storeInArray(value){
+        if(JSON.parse(localStorage.getItem('cart'))){
+            this.cart = [...JSON.parse(localStorage.getItem('cart'))];
+        }
+
+            if(!this.cart.find(item => item.id === value.id)){
+                this.cart.push(value)
+                localStorage.setItem('cart', JSON.stringify(this.cart));
+                console.log('yes')
+            }else{
+                console.log('no')
+                this.cart = this.cart.filter(item => item.id !== value.id)
+                localStorage.setItem('cart', JSON.stringify(this.cart));
+                console.log(this.cart.filter(item => item.id !== value.id))
+            }
+
+            location.reload();
+        
+        return this.cart;
+    }
+
+    
+
+
 }
 
 class ReviewCard extends HTMLElement{
@@ -141,12 +203,28 @@ class Hero extends HTMLElement{
     }
 }
 
+class Footer extends HTMLElement{
+    connectedCallback(){
+        try{
+            this.innerHTML = `
+            <footer class="w-full h-count bg-color" style="--h: 50px; --bg-color: #333">
+                <div class="h-full flex flex-col justify-center items-center">
+                    <p class="text-color text-size" style="--color: #fff; --size: 20px;">${this.getAttribute("text")}</p>
+                </div>
+            </footer>`;
+        }catch(e){
+            console.log(e);
+        }
+    }
+}
+
 
 
 customElements.define('nav-component', Nav);
 customElements.define('card-component', Card);
 customElements.define('review-card-component', ReviewCard);
 customElements.define('hero-component', Hero);
+customElements.define('footer-component', Footer);
 
 // functions register
 window.AppFunctions = {
@@ -158,5 +236,16 @@ window.AppFunctions = {
     },
     output(){
         console.log('work')
+    },
+    storeInArray(value){
+        let cart = [];
+        cart.push(value)
+        return cart;
+    },
+    store(value){
+        let cart = [];
+        cart.push(value)
+        localStorage.setItem('cart', JSON.stringify(cart));
+        console.log(value)
     }
 }
