@@ -7,11 +7,15 @@
     third call your function (two params - object, container)
 */
 
+const generateId = () => {
+    return Date.now() + Math.floor(Math.random() * 1000)
+}
+
 const cardFunction = (values,entryContainer,customAttr = {},cardName) => {
     values.forEach((value) => {
         let card = document.createElement(`${cardName ?? 'card'}-component`);
         switch(cardName){
-            case 'reviewCard':
+            case 'review-card':
                 card.setAttribute('name', value.name);
                 card.setAttribute('text', value.text);
                 card.setAttribute('date', value.date);
@@ -23,6 +27,7 @@ const cardFunction = (values,entryContainer,customAttr = {},cardName) => {
                 card.setAttribute('title', value.title);
                 card.setAttribute('text', value.text);
                 card.setAttribute('buttonText', value.buttonText);
+                card.setAttribute('id', `${value.title}-${generateId()}`);
                 Object.entries(customAttr).forEach(([key, val]) => {
                     card.setAttribute(key, val);
                 })
@@ -265,16 +270,49 @@ const shopCatalogues = [
         buttonText: 'Contact Us',
     }
  ]
+
+ const reviewData = [
+    {
+        name: 'John Doe',
+        text: 'Absolutely love this product! Quality is amazing and delivery was super fast. Will definitely buy again!',
+        date: 'June 9, 2025',
+        image: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=3560&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+    },
+    {
+        name: 'Jane Smith',
+        text: 'The product exceeded my expectations. The quality is top-notch and the delivery was prompt. Highly recommend!',
+        date: 'June 8, 2025',
+        image: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=3560&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+    },
+    {
+        name: 'Michael Johnson',
+        text: 'I was pleasantly surprised by the product. The quality is good and the delivery was on time. Will purchase again!',
+        date: 'June 7, 2025',
+        image: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=3560&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+    },
+    {
+        name: 'Emily Davis',
+        text: 'The product is exactly as advertised. The quality is excellent and the delivery was fast. Would buy again!',
+        date: 'June 6, 2025',
+        image: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=3560&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+    },
+    {
+        name: 'David Wilson',
+        text: 'The product is exactly as advertised. The quality is excellent and the delivery was fast. Would buy again!',
+        date: 'June 5, 2025',
+        image: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=3560&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+    }
+ ]
       
 
 
 
 const waitDom = (arrays) => {
     arrays.forEach((array) => {
-        if(array[2]){
+        if(typeof array[2] !== 'string'){
             if(array[1]) cardFunction(array[0], array[1], array[2], array[3]);
         }else{
-            if(array[1]) cardFunction(array[0], array[1], array[2]);
+            if(array[1]) cardFunction(array[0], array[1],null, array[2]);
         }
     })
 }
@@ -285,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const container = document.getElementById('cards');
 const shopContainer = document.getElementById('shopCards');
 const contactContainer = document.getElementById('contact');
+const reviewContainer = document.getElementById('review-container');
 
 // array first room - input your data array
 // array second room - input your container
@@ -293,8 +332,50 @@ const contactContainer = document.getElementById('contact');
 waitDom([
     [catalogues, container],
     [shopCatalogues, shopContainer],
-    [contactData, contactContainer, {isBtn: false, isImage: true}]
+    [contactData, contactContainer, {isBtn: false, isImage: true}],
+    [reviewData, reviewContainer, 'review-card']
 ])
 })
 
 //end for cards
+
+//@click 
+// script.js
+// bind the @click (data-click) in script.js, so whereever I use that from html file, it can use the functions of window.AppFunctions
+function bindClickDirectives(context = window) {
+  document.querySelectorAll('[data-click]').forEach(el => {
+    const fnName = el.dataset.click;
+    const fn = window.AppFunctions?.[fnName];
+
+    if (typeof fn === 'function') {
+      const argsAttr = el.dataset.clickArgs ? el.dataset.clickArgs : true;
+     
+      let args = [];
+
+      try{
+        if(argsAttr){
+          args = JSON.parse(argsAttr);
+          console.log(args);
+        }
+      }catch(e){
+        console.log(e);
+      }
+      el.addEventListener('click', () => {
+        const result = fn(...args);
+        console.log(result)
+        const bindKey = el.dataset.bindResult;
+
+        if(bindKey && context && typeof context == 'object'){
+            context[bindKey] = result;
+            console.log(context[bindKey])
+        }
+        
+      });
+    } else {
+      console.warn(`Function "${fnName}" not found in AppFunctions`);
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', bindClickDirectives);
+

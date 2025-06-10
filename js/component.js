@@ -1,27 +1,69 @@
 class Nav extends HTMLElement {
+    constructor(){
+        super();
+        this.mediaQuery = window.matchMedia("(max-width: 728px)");
+        this.handleResize = this.handleResize.bind(this);
+        this.links = [];
+        this.text = '';
+        this.openNavResult = null;
+    }
     connectedCallback() {
+        
+        this.mediaQuery.addEventListener("change", this.handleResize);
+        this.links = this.getAttribute("links");
+        this.text = this.getAttribute("text");
 
-        const attributeLinks = this.getAttribute("links");
 
-        let links = [];
         try{
-            links = JSON.parse(attributeLinks);
+            this.links = JSON.parse(this.links);
         }catch(e){
             console.log(e);
         }
 
-        const listItems = links.map((link) => {
+        this.render();
+    }
+
+    disconnectedCallback(){
+        this.mediaQuery.removeEventListener("change", this.handleResize);
+    }
+
+    handleResize(){
+        this.render();
+    }
+
+    render(){
+        const isMobile = this.mediaQuery.matches;
+        const mobileIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-count" style="--w: 24px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
+                            </svg>`
+
+        
+        const listItems = this.links.map((link) => {
             return `<li><a href="${link.href}">${link.text}</a></li>`;
         });
 
-
+        const mobileLists = this.links.map((link) => {
+            return `<div class="padding-x margin-y ${this.openNavResult ? 'block' : 'hidden'}" style="--my: 5px; cursor: pointer;">
+                <ul class="" style="list-style-type: none;">
+                    <li class="link-decoration"><a href="${link.href}">${link.text}</a></li>
+                </ul>
+            </div>`;
+        })
+                    
+                    
         this.innerHTML = `
-        <nav class="nav flex justify-between items-center">
-            <h1 class="text-center margin-x text-color" style="--color: #fff;">${this.getAttribute("title")}</h1>
-            <ul class="nav-list ">
-                ${listItems.join('')}
-            </ul>
-        </nav>`;
+            <nav class="nav flex justify-between items-center">
+                <h1 class="text-center margin-x text-color" style="--color: #fff;">${this.title}</h1>
+                                
+                <button data-click="isBool" data-click-args="[${this.openNavResult}]" data-bind-result="openNavResult" class="btn btn-color ${isMobile ? 'block' : 'hidden'}" style="padding: 2px 2px; --btn-color:transparent; --btn-text-color:white;" >${mobileIcon}</button>
+                                   
+                <ul class="nav-list ${isMobile ? 'hidden' : 'block'}">${listItems.join('')}</ul>
+            </nav>
+            ${isMobile ? mobileLists.join('') : ''}
+            `;
+        
+        bindClickDirectives(this);
+        
     }
 }
 
@@ -29,10 +71,9 @@ class Card extends HTMLElement {
     connectedCallback() {
         try{
             const text = this.getAttribute("text");
-            console.log(text.split(', '))
+            const id = this.getAttribute("id");
             
             const condition = Array.isArray(text.split(', '));
-            console.log(condition)
             let textContent;
             if(condition){
                 textContent = text.split(', ').map(pt => {
@@ -47,7 +88,7 @@ class Card extends HTMLElement {
             ${this.hasAttribute("image") ? `<img src="${this.getAttribute("image")}" alt="" class="card-img">` : ''}
             <h2 class="card-title">${this.getAttribute("title")}</h2>
             ${textContent}
-            ${isBtn ? `<button class="card-button">${this.getAttribute("buttonText")}</button>` : ''}
+            ${isBtn ? `<button id="btn-${id}" class="card-button">${this.getAttribute("buttonText")}</button>` : ''}
          </div>`;
         }catch(e){
             console.log(e);
@@ -106,3 +147,16 @@ customElements.define('nav-component', Nav);
 customElements.define('card-component', Card);
 customElements.define('review-card-component', ReviewCard);
 customElements.define('hero-component', Hero);
+
+// functions register
+window.AppFunctions = {
+    // true false function | use it for every true false function 
+    isBool(value){
+        value === false ? value = true : value = false;
+        return value;
+        
+    },
+    output(){
+        console.log('work')
+    }
+}

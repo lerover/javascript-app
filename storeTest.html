@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Global Store Demo</title>
+</head>
+<body>
+  <h1 id="count">0</h1>
+  <button id="incBtn">Increment</button>
+
+  <script src="./js/store.js"></script>
+  <script>
+    // Subscribe to store updates
+    store.subscribe((state) => {
+      document.getElementById('count').textContent = state.count;
+    console.log(state)
+    });
+
+    // Button logic
+    document.getElementById('incBtn').addEventListener('click', () => {
+      const current = store.getState().count;
+      store.setState({ count: current + 1 });
+    });
+  </script>
+</body>
+</html>
